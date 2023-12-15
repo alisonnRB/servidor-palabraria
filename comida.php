@@ -12,7 +12,7 @@ function resposta($codigo, $ok, $dados) {
         'dados' => $dados,
     ];
 
-    echo(json_encode($response));
+    echo(json_encode($response, JSON_UNESCAPED_UNICODE));
     die;
 }
 
@@ -25,11 +25,20 @@ function Buscar(){
         $stmt->execute();
         $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Corrigir encoding para cada string no array
+        foreach ($resultados as &$item) {
+            $item['palavraEN'] = utf8_encode($item['palavraEN']);
+            $item['palavraPT'] = utf8_encode($item['palavraPT']);
+            $item['descricao'] = utf8_encode($item['descricao']);
+
+            // Se as imagens são strings JSON, você também pode decodificá-las e depois codificá-las novamente
+            $item['imagens'] = json_encode(json_decode($item['imagens']), JSON_UNESCAPED_UNICODE);
+        }
+
         resposta(200, true, $resultados);
-    }catch(PDOException $e){
+    } catch(PDOException $e){
         resposta(500, false, []);
     }
-
 }
 
 Buscar();
